@@ -1,138 +1,18 @@
 import os
-from enum import Enum
+
+from pieces import Rook, King, Color, Knight, Bishop, Pawn, Queen, EmptyField, Position
 
 ILLEGAL_MOVE_MESSAGE = "illegal move"
 COLOR_UNDEFINED_MESSAGE = "color undefined"
 EMPTY_FIELD_MESSAGE = "empty field"
 
 
-class Color(Enum):
-    BLACK = "black"
-    WHITE = "white"
-    EMPTY = "empty"
-
-
-class Position:
-    def __init__(self, x: int, y: int):
-        self.x = x
-        self.y = y
-
-    def move(self, x: int, y: int) -> bool:
-        if 0 > x > 8 or 0 > y > 8:
-            print(ILLEGAL_MOVE_MESSAGE)
-            return False
-        self.x = x
-        self.y = y
-        return True
-
-
-class Pawn:
-    def __init__(self, x: int, y: int, color: Color):
-        self.position = Position(x, y)
-        self.color = color
-
-    def legal_move(self, position: Position) -> bool:
-        if self.position.y != position.y:
-            print(ILLEGAL_MOVE_MESSAGE)
-            return False
-
-        old_x = self.position.x
-        new_x = position.x
-
-        match self.color:
-            case Color.BLACK:
-                if old_x == 7 and old_x - new_x <= 2:
-                    return position.move(new_x, position.y)
-                else:
-                    print(ILLEGAL_MOVE_MESSAGE)
-            case Color.WHITE:
-                if old_x == 1 and new_x - old_x <= 2:
-                    return position.move(new_x, position.y)
-                else:
-                    print(ILLEGAL_MOVE_MESSAGE)
-            case _:
-                print(COLOR_UNDEFINED_MESSAGE)
-        return False
-
-
-class Rook(Pawn):
-    def legal_move(self, position: Position) -> bool:
-        new_x = position.x
-        old_x = self.position.x
-        new_y = position.y
-        old_y = self.position.y
-
-        if old_x == new_x or old_y == new_y:
-            return position.move(new_x, new_y)
-
-        print(ILLEGAL_MOVE_MESSAGE)
-        return False
-
-
-class Knight(Pawn):
-    def legal_move(self, position: Position) -> bool:
-        if abs(self.position.x - position.x) == 2 and abs(self.position.y - position.y) == 1:
-            return position.move(position.x, position.y)
-        elif abs(self.position.x - position.x) == 1 and abs(self.position.y - position.y) == 2:
-            return position.move(position.x, position.y)
-        else:
-            print(ILLEGAL_MOVE_MESSAGE)
-            return False
-
-
-class Bishop(Pawn):
-    def legal_move(self, position: Position) -> bool:
-        old_x = self.position.x
-        new_x = position.x
-        old_y = self.position.y
-        new_y = position.y
-
-        if abs(new_x - old_x) == abs(new_y - old_y):
-            return position.move(new_x, new_y)
-        else:
-            print(ILLEGAL_MOVE_MESSAGE)
-            return False
-
-
-class Queen(Pawn):
-    def legal_move(self, position: Position) -> bool:
-        old_x = self.position.x
-        new_x = position.x
-        old_y = self.position.y
-        new_y = position.y
-
-        if old_x == new_x or old_y == new_y or abs(new_x - old_x) == abs(new_y - old_y):
-            return position.move(new_x, new_y)
-        else:
-            print(ILLEGAL_MOVE_MESSAGE)
-            return False
-
-
-class King(Pawn):
-    def legal_move(self, position: Position) -> bool:
-        old_x = self.position.x
-        new_x = position.x
-        old_y = self.position.y
-        new_y = position.y
-
-        if abs(new_x - old_x) <= 1 and abs(new_y - old_y) <= 1:
-            return position.move(new_x, new_y)
-        else:
-            print(ILLEGAL_MOVE_MESSAGE)
-            return False
-
-
-class EmptyField(Pawn):
-    def __init__(self, x: int, y: int):
-        super().__init__(x, y, Color.EMPTY)
-
-    def legal_move(self, position: Position) -> bool:
-        print(EMPTY_FIELD_MESSAGE)
-        return False
-
-
 def green(text):
     return "\033[38;2;{};{};{}m{}\033[38;2;255;255;255m".format(0, 255, 0, text)
+
+
+def blue(text):
+    return "\033[38;2;{};{};{}m{}\033[38;2;255;255;255m".format(0, 0, 255, text)
 
 
 class Board:
@@ -159,19 +39,43 @@ class Board:
             for col in range(8):
                 piece = self.fields[row][col]
                 if isinstance(piece, Rook):
-                    print(green("R") if piece.color == Color.BLACK else "R", end=" ")
+                    match piece.color:
+                        case Color.BLACK:
+                            print(green("R"), end=" ")
+                        case Color.WHITE:
+                            print(blue("R"), end=" ")
                 elif isinstance(piece, Knight):
-                    print(green("H") if piece.color == Color.BLACK else "H", end=" ")
+                    match piece.color:
+                        case Color.BLACK:
+                            print(green("H"), end=" ")
+                        case Color.WHITE:
+                            print(blue("H"), end=" ")
                 elif isinstance(piece, Bishop):
-                    print(green("B") if piece.color == Color.BLACK else "B", end=" ")
+                    match piece.color:
+                        case Color.BLACK:
+                            print(green("B"), end=" ")
+                        case Color.WHITE:
+                            print(blue("B"), end=" ")
                 elif isinstance(piece, Queen):
-                    print(green("Q") if piece.color == Color.BLACK else "Q", end=" ")
+                    match piece.color:
+                        case Color.BLACK:
+                            print(green("Q"), end=" ")
+                        case Color.WHITE:
+                            print(blue("Q"), end=" ")
                 elif isinstance(piece, King):
-                    print(green("K") if piece.color == Color.BLACK else "K", end=" ")
+                    match piece.color:
+                        case Color.BLACK:
+                            print(green("K"), end=" ")
+                        case Color.WHITE:
+                            print(blue("K"), end=" ")
                 elif isinstance(piece, EmptyField):
                     print("#", end=" ")
                 elif isinstance(piece, Pawn):
-                    print(green("P") if piece.color == Color.BLACK else "P", end=" ")
+                    match piece.color:
+                        case Color.BLACK:
+                            print(green("P"), end=" ")
+                        case Color.WHITE:
+                            print(blue("P"), end=" ")
                 else:
                     print(" ", end=" ")
             print("|", row + 1)
@@ -183,50 +87,53 @@ def clear():
     os.system("cls || clear")
 
 
-def parse_position(input_str) -> Position:
+def parse_position(input_str) -> (Position, bool):
     columns = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
     try:
         column = columns[input_str[0].lower()]
         row = int(input_str[1]) - 1
         if 0 <= row <= 7:
-            return Position(row, column)
+            return Position(row, column), True
         else:
             print("Invalid row.")
-            return None
+            return None, False
     except (KeyError, IndexError, ValueError):
         print("Invalid position.")
-        return None
-
-
-def is_valid_position(position: Position, board: Board) -> bool:
-    return True
+        return None, False
 
 
 def play():
+    clear()
     board = Board()
     player = Color.WHITE
     while True:
-        print(f"{player} turn")
+        print(f"{player.value} turn")
         board.print_board()
+
         piece = input("select piece->")
-        piece_position = parse_position(piece)
-        if not is_valid_position(piece_position, board):
-            print("Invalid position!")
+        piece_position, success = parse_position(piece)
+        if not success:
+            clear()
+            print("Can't parse position")
             continue
+
         selected_piece = board.fields[piece_position.x][piece_position.y]
         if not isinstance(selected_piece, Pawn) or selected_piece.color != player:
+            clear()
             print("Invalid piece selection!")
             continue
+
         target = input("select target position->")
-        target_position = parse_position(target)
-        if not is_valid_position(target_position, board):
-            print("Invalid position!")
+        target_position, success = parse_position(target)
+        if not success:
+            clear()
+            print("Can't parse position")
             continue
+
+        clear()
         if selected_piece.legal_move(target_position):
             board.fields[target_position.x][target_position.y] = selected_piece
             board.fields[piece_position.x][piece_position.y] = EmptyField(piece_position.x, piece_position.y)
             player = Color.BLACK if player == Color.WHITE else Color.WHITE
-        clear()
-
-
-play()
+        else:
+            print(ILLEGAL_MOVE_MESSAGE)

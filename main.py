@@ -1,8 +1,8 @@
-from game import play
+import game
 
 
 def main():
-    play()
+    game.play()
 
 
 if __name__ == '__main__':

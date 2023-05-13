@@ -37,13 +37,15 @@ def play():
     board = pieces.Board()
     player = WHITE
     while True:
-        print(f"{player.value} turn")
+        print(f"{print_util.red(player.value) if player == BLACK else print_util.green(player.value)} turn")
         if board.is_check(player):
             print(print_util.red(PLAYER_CHECKED))
             if board.is_checkmate(player):
                 print_util.clear()
+                print_util.print_board(board)
                 winner = BLACK if player == WHITE else WHITE
                 print(f"{print_util.green(winner.name)} WON!")
+                break
 
         print_util.print_board(board)
 

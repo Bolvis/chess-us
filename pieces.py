@@ -152,8 +152,11 @@ class Board:
         for i in range(1, max(abs_dx, abs_dy)):
             x = old_x + i * step_x
             y = old_y + i * step_y
-            if not isinstance(self.fields[x][y], EmptyField):
-                return False
+            try:
+                if not isinstance(self.fields[x][y], EmptyField):
+                    return False
+            except IndexError:
+                continue
 
         return True
 
@@ -169,7 +172,7 @@ class Board:
 
         for row in self.fields:
             for piece in row:
-                if isinstance(piece, Piece) and piece.color != player:
+                if isinstance(piece, Piece) and piece.color != player and self.is_path_free(piece, king_position):
                     if isinstance(piece, Pawn) and piece.legal_move(king_position, attack=True, dry=True):
                         return True
                     elif piece.legal_move(king_position, dry=True):
@@ -185,10 +188,10 @@ class Board:
                 if isinstance(piece, Piece) and piece.color == player:
                     for row2 in self.fields:
                         for piece2 in row2:
-                            if isinstance(piece2, EmptyField) and piece.legal_move(piece2.position):
-                                piece.position.move(piece2.position.x, piece2.position.y)
+                            if isinstance(piece2, EmptyField) and piece.legal_move(piece2.position, dry=True):
+                                piece.position.move(piece2.position.x, piece2.position.y, dry=True)
                                 if not self.is_check(player):
-                                    piece.position.move(piece.position.x, piece.position.y)
+                                    piece.position.move(piece.position.x, piece.position.y, dry=True)
                                     return False
-                                piece.position.move(piece.position.x, piece.position.y)
+                                piece.position.move(piece.position.x, piece.position.y, dry=True)
         return True

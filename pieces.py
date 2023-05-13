@@ -1,6 +1,8 @@
 from abc import abstractmethod
 from enum import Enum
 
+import print_util
+
 
 class Color(Enum):
     WHITE = "green"
@@ -13,11 +15,12 @@ class Position:
         self.x = x
         self.y = y
 
-    def move(self, x: int, y: int) -> bool:
+    def move(self, x: int, y: int, dry: bool = False) -> bool:
         if 0 > x > 8 or 0 > y > 8:
             return False
-        self.x = x
-        self.y = y
+        if not dry:
+            self.x = x
+            self.y = y
         return True
 
 
@@ -27,13 +30,13 @@ class Piece:
         self.color = color
 
     @abstractmethod
-    def legal_move(self, position: Position) -> bool:
+    def legal_move(self, position: Position, dry: bool = False) -> bool:
         if position.x == self.position.x and position.y == self.position.y:
             return False
 
 
 class Pawn(Piece):
-    def legal_move(self, position: Position, attack: bool = False) -> bool:
+    def legal_move(self, position: Position, dry: bool = False, attack: bool = False) -> bool:
         super()
         old_y = self.position.y
         new_y = position.y
@@ -47,13 +50,13 @@ class Pawn(Piece):
         direction = 1 if self.color == Color.WHITE else -1
         if (old_x == start and (new_x - start == 2 * direction or new_x - start == 1 * direction) and not attack) \
                 or new_x - old_x == direction:
-            return self.position.move(new_x, new_y)
+            return self.position.move(new_x, new_y, dry)
 
         return False
 
 
 class Rook(Piece):
-    def legal_move(self, position: Position) -> bool:
+    def legal_move(self, position: Position, dry: bool = False) -> bool:
         super()
         new_x = position.x
         old_x = self.position.x
@@ -61,23 +64,23 @@ class Rook(Piece):
         old_y = self.position.y
 
         if old_x == new_x or old_y == new_y:
-            return self.position.move(new_x, new_y)
+            return self.position.move(new_x, new_y, dry)
 
         return False
 
 
 class Knight(Piece):
-    def legal_move(self, position: Position) -> bool:
+    def legal_move(self, position: Position, dry: bool = False) -> bool:
         super()
         if abs(self.position.x - position.x) == 2 and abs(self.position.y - position.y) == 1:
-            return self.position.move(position.x, position.y)
+            return self.position.move(position.x, position.y, dry)
         elif abs(self.position.x - position.x) == 1 and abs(self.position.y - position.y) == 2:
-            return self.position.move(position.x, position.y)
+            return self.position.move(position.x, position.y, dry)
         return False
 
 
 class Bishop(Piece):
-    def legal_move(self, position: Position) -> bool:
+    def legal_move(self, position: Position, dry: bool = False) -> bool:
         super()
         old_x = self.position.x
         new_x = position.x
@@ -85,12 +88,12 @@ class Bishop(Piece):
         new_y = position.y
 
         if abs(new_x - old_x) == abs(new_y - old_y):
-            return self.position.move(new_x, new_y)
+            return self.position.move(new_x, new_y, dry)
         return False
 
 
 class Queen(Piece):
-    def legal_move(self, position: Position) -> bool:
+    def legal_move(self, position: Position, dry: bool = False) -> bool:
         super()
         old_x = self.position.x
         new_x = position.x
@@ -98,12 +101,12 @@ class Queen(Piece):
         new_y = position.y
 
         if old_x == new_x or old_y == new_y or abs(new_x - old_x) == abs(new_y - old_y):
-            return self.position.move(new_x, new_y)
+            return self.position.move(new_x, new_y, dry)
         return False
 
 
 class King(Piece):
-    def legal_move(self, position: Position) -> bool:
+    def legal_move(self, position: Position, dry: bool = False) -> bool:
         super()
         old_x = self.position.x
         new_x = position.x
@@ -111,7 +114,7 @@ class King(Piece):
         new_y = position.y
 
         if abs(new_x - old_x) <= 1 and abs(new_y - old_y) <= 1:
-            return self.position.move(new_x, new_y)
+            return self.position.move(new_x, new_y, dry)
         return False
 
 
@@ -119,16 +122,8 @@ class EmptyField(Piece):
     def __init__(self, x: int, y: int):
         super().__init__(x, y, Color.EMPTY)
 
-    def legal_move(self, position: Position) -> bool:
+    def legal_move(self, position: Position, dry: bool = False) -> bool:
         return False
-
-
-def green(text):
-    return "\033[38;2;{};{};{}m{}\033[38;2;255;255;255m".format(0, 255, 0, text)
-
-
-def red(text):
-    return "\033[38;2;{};{};{}m{}\033[38;2;255;255;255m".format(255, 0, 0, text)
 
 
 class Board:
@@ -162,53 +157,38 @@ class Board:
 
         return True
 
-    def print_board(self):
-        print("  A B C D E F G H")
-        print("  ---------------")
-        for row in range(7, -1, -1):
-            print(row + 1, end="|")
-            for col in range(8):
-                piece = self.fields[row][col]
-                if isinstance(piece, Rook):
-                    match piece.color:
-                        case Color.BLACK:
-                            print(red("R"), end=" ")
-                        case Color.WHITE:
-                            print(green("R"), end=" ")
-                elif isinstance(piece, Knight):
-                    match piece.color:
-                        case Color.BLACK:
-                            print(red("H"), end=" ")
-                        case Color.WHITE:
-                            print(green("H"), end=" ")
-                elif isinstance(piece, Bishop):
-                    match piece.color:
-                        case Color.BLACK:
-                            print(red("B"), end=" ")
-                        case Color.WHITE:
-                            print(green("B"), end=" ")
-                elif isinstance(piece, Queen):
-                    match piece.color:
-                        case Color.BLACK:
-                            print(red("Q"), end=" ")
-                        case Color.WHITE:
-                            print(green("Q"), end=" ")
-                elif isinstance(piece, King):
-                    match piece.color:
-                        case Color.BLACK:
-                            print(red("K"), end=" ")
-                        case Color.WHITE:
-                            print(green("K"), end=" ")
-                elif isinstance(piece, EmptyField):
-                    print("#", end=" ")
-                elif isinstance(piece, Pawn):
-                    match piece.color:
-                        case Color.BLACK:
-                            print(red("P"), end=" ")
-                        case Color.WHITE:
-                            print(green("P"), end=" ")
-                else:
-                    print(" ", end=" ")
-            print("|", row + 1)
-        print("  ---------------")
-        print("  A B C D E F G H")
+    def is_check(self, player: Color) -> bool:
+        king_position = None
+        for row in self.fields:
+            for piece in row:
+                if isinstance(piece, King) and piece.color == player:
+                    king_position = piece.position
+                    break
+            if king_position:
+                break
+
+        for row in self.fields:
+            for piece in row:
+                if isinstance(piece, Piece) and piece.color != player:
+                    if isinstance(piece, Pawn) and piece.legal_move(king_position, attack=True, dry=True):
+                        return True
+                    elif piece.legal_move(king_position, dry=True):
+                        return True
+        return False
+
+    def is_checkmate(self, player: Color) -> bool:
+        if not self.is_check(player):
+            return False
+
+        for row in self.fields:
+            for piece in row:
+                if isinstance(piece, Piece) and piece.color == player:
+                    for row2 in self.fields:
+                        for piece2 in row2:
+                            if isinstance(piece2, EmptyField) and piece.legal_move(piece2.position):
+                                piece.position.move(piece2.position.x, piece2.position.y)
+                                if not self.is_check(player):
+                                    piece.position.move(piece.position.x, piece.position.y)
+                                    return False
+                                piece.position.move(piece.position.x, piece.position.y)
+        return True

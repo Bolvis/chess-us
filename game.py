@@ -1,4 +1,4 @@
-import os
+import print_util
 import pieces
 
 ILLEGAL_MOVE_MESSAGE = "illegal move"
@@ -6,12 +6,10 @@ COLOR_UNDEFINED_MESSAGE = "color undefined"
 EMPTY_FIELD_MESSAGE = "empty field"
 INVALID_SELECTION = "Invalid selection!"
 CANT_PARSE = "Can't parse position"
+PLAYER_CHECKED = "Player checked!"
+CHECK_MATE = "Checkmate!"
 WHITE = pieces.Color.WHITE
 BLACK = pieces.Color.BLACK
-
-
-def clear():
-    os.system("cls || clear")
 
 
 def parse_position(input_str) -> (pieces.Position, bool):
@@ -30,17 +28,24 @@ def parse_position(input_str) -> (pieces.Position, bool):
 
 
 def fail(message: str):
-    clear()
-    print(pieces.red(message))
+    print_util.clear()
+    print(print_util.red(message))
 
 
 def play():
-    clear()
+    print_util.clear()
     board = pieces.Board()
     player = WHITE
     while True:
         print(f"{player.value} turn")
-        board.print_board()
+        if board.is_check(player):
+            print(print_util.red(PLAYER_CHECKED))
+            if board.is_checkmate(player):
+                print_util.clear()
+                winner = BLACK if player == WHITE else WHITE
+                print(f"{print_util.green(winner.name)} WON!")
+
+        print_util.print_board(board)
 
         piece = input("select piece->")
         piece_position, success = parse_position(piece)
